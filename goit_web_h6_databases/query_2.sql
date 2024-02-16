@@ -1,9 +1,15 @@
 -- Uczeń (uczniowie) z najwyższą średnią ocen z wybranego przedmiotu.
-SELECT s.student_name, c.course_name, AVG(g.grade) AS avg_grades
+WITH CourseGrades AS (
+    SELECT g.student_id, g.course_id, AVG(g.grade) AS avg_grade
+    FROM grades g
+    WHERE g.course_id = 3
+    GROUP BY g.student_id, g.course_id
+)
+SELECT s.student_name, cg.avg_grade, c.course_name
 FROM students s
-JOIN grades g ON s.id = g.student_id
-JOIN courses c ON g.course_id = c.id
-WHERE c.id = 2
-GROUP BY s.id, c.id
-ORDER BY avg_grades DESC
-LIMIT 1;
+JOIN CourseGrades cg ON s.id = cg.student_id
+JOIN courses c ON cg.course_id = c.id
+WHERE cg.avg_grade = (
+    SELECT MAX(avg_grade)
+    FROM CourseGrades
+);
